@@ -6,7 +6,7 @@ public class PerfectGridTextureForPlane : MonoBehaviour
     public Color gridColor = Color.white; // Couleur des lignes de la grille
     public Color backgroundColor = new Color(0f, 0.443f, 0.631f); // Couleur #0071A1
     public int pixelsPerUnit = 50; // Contrôle la densité de la grille
-    public float lineThickness = 1f; // Épaisseur des lignes de la grille (en pixels)
+    public float lineThickness = 1.5f; // Épaisseur des lignes de la grille (en pixels)
 
     void Start()
     {
