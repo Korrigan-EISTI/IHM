@@ -24,7 +24,7 @@ public class WallSelector : MonoBehaviour
                     Vector3 position = wall.transform.position;
                     Vector3 rotation = wall.transform.eulerAngles;
                     Vector3 scale = wall.transform.localScale;
-
+                    
                     changeSceneCenter(wall);
 
                     // Affiche ou renvoie les informations du mur
@@ -33,7 +33,7 @@ public class WallSelector : MonoBehaviour
             }
         }
     }
-
+    
     private void changeSceneCenter(GameObject wall)
     {
         GameObject roomParent = wall.transform.root.gameObject;
