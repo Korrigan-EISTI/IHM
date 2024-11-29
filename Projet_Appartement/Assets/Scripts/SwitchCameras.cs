@@ -5,6 +5,7 @@ public class CameraSwitcher : MonoBehaviour
     [SerializeField] private Transform cameras;
     public KeyCode switchKey = KeyCode.C; // Touche pour changer de caméra
     private int currentCameraIndex = 0;
+    
 
     void Start()
     {
@@ -12,7 +13,7 @@ public class CameraSwitcher : MonoBehaviour
         for (int i = 0; i < cameras.childCount; i++)
         {
             cameras.GetChild(i).gameObject.SetActive(i == currentCameraIndex);
-            
+            Camera.SetupCurrent(cameras.GetChild(currentCameraIndex).GetComponent<Camera>());
         }
     }
 
@@ -35,5 +36,6 @@ public class CameraSwitcher : MonoBehaviour
 
         // Activer la nouvelle caméra
         cameras.GetChild(currentCameraIndex).gameObject.SetActive(true);
+        Camera.SetupCurrent(cameras.GetChild(currentCameraIndex).GetComponent<Camera>());
     }
 }

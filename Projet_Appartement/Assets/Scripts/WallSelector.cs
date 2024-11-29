@@ -6,7 +6,7 @@ public class WallSelector : MonoBehaviour
 
     private void Update()
     {
-        // Vérifie si un clic gauche est effectué
+        // Vï¿½rifie si un clic gauche est effectuï¿½
         if (Input.GetMouseButtonDown(0) && mainCamera == Camera.current)
         {
             // Lance un raycast depuis la position de la souris
@@ -16,10 +16,10 @@ public class WallSelector : MonoBehaviour
             // Si le raycast touche quelque chose
             if (Physics.Raycast(ray, out hit, 1500))
             {
-                // Vérifie si l'objet touché est un mur
+                // Vï¿½rifie si l'objet touchï¿½ est un mur
                 if (hit.collider != null && hit.collider.name.Contains("Wall"))
                 {
-                    // Récupère les informations du mur
+                    // Rï¿½cupï¿½re les informations du mur
                     GameObject wall = hit.collider.gameObject;
                     Vector3 position = wall.transform.position;
                     Vector3 rotation = wall.transform.eulerAngles;
@@ -41,24 +41,23 @@ public class WallSelector : MonoBehaviour
 
         if (renderers.Length == 0)
         {
-            Debug.LogError("Aucun Renderer trouvé dans l'objet de la pièce.");
+            Debug.LogError("Aucun Renderer trouvï¿½ dans l'objet de la piï¿½ce.");
             return;
         }
 
         // Initialise la Bounding Box avec le premier Renderer
         Bounds combinedBounds = renderers[0].bounds;
 
-        // Étend la Bounding Box pour inclure tous les autres Renderers
+        // ï¿½tend la Bounding Box pour inclure tous les autres Renderers
         foreach (Renderer renderer in renderers)
         {
             combinedBounds.Encapsulate(renderer.bounds);
         }
-
-        CameraMouvements.sceneCenter = combinedBounds.center;
+        
     }
 
 
-    // Méthode pour afficher les informations du mur dans la console
+    // Mï¿½thode pour afficher les informations du mur dans la console
     private void DisplayWallInfo(Vector3 position, Vector3 rotation, Vector3 scale)
     {
         Debug.Log($"Position du mur: {position}");
