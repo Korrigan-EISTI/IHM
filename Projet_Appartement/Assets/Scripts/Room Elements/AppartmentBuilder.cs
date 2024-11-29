@@ -17,6 +17,7 @@ public class ApartmentManager : MonoBehaviour
     private int nbWallClicked = 0; // Booléen pour indiquer si une pièce est en cours de création
     public Transform apartmentParent;
     public ConstructionMode mode = ConstructionMode.Apartment;
+    private float y = 1.26f;
 
     void Start()
     {
@@ -48,6 +49,7 @@ public class ApartmentManager : MonoBehaviour
                     InitializeRoom();
                 }
 
+                mousePosition.y = 1.26f;
                 currentRoom.AddCorner(mousePosition, rooms, null);
 
                 if (currentRoom.corners.Count > 2 && IsNearFirstCorner(mousePosition, currentRoom))
@@ -71,12 +73,14 @@ public class ApartmentManager : MonoBehaviour
                     if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
                     {
                         Wall clickedWall = hit.collider.GetComponent<Wall>();
+                        Vector3 point = hit.point;
+                        point.y = 1.26f;
                         if (nbWallClicked > 0)
-                            currentRoom.AddCorner(hit.point, rooms, null);
+                            currentRoom.AddCorner(point, rooms, null);
                         if (clickedWall != null)
                         {
                             if (nbWallClicked <= 0)
-                                currentRoom.AddCorner(hit.point, rooms, null);
+                                currentRoom.AddCorner(point, rooms, null);
                             nbWallClicked++;
 
                             if (currentRoom.corners.Count >= 2 && nbWallClicked >= 2)
@@ -140,6 +144,7 @@ public class ApartmentManager : MonoBehaviour
 
         if (intersectionPoint != Vector3.zero)
         {
+            intersectionPoint.y = 1.26f;
             newRoom.AddCorner(intersectionPoint, rooms, parentRoom);
 
             foreach (Vector3 corner in newRoom.corners)

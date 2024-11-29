@@ -334,6 +334,12 @@ Transform:
   - {fileID: 145646731}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &851946835 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1569021245495235640, guid: 86a7931b7be28fa43a9313c162881bec,
+    type: 3}
+  m_PrefabInstance: {fileID: 6532829185271859217}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &876257842
 GameObject:
   m_ObjectHideFlags: 0
@@ -378,18 +384,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8804a251240e07d429477e8019538bc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainCamera: {fileID: 1075820422}
-  rotationSpeed: 0.5
-  distanceFromCenter: 10
-  minZoomDistance: 5
-  maxZoomDistance: 20
-  zoomSpeed: 5
---- !u!20 &1075820422 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 2826329753230264868, guid: 86a7931b7be28fa43a9313c162881bec,
-    type: 3}
-  m_PrefabInstance: {fileID: 6532829185271859217}
+--- !u!114 &1075820424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 851946835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a383d66915cfc545bd494bc82bfb670, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  distance: 10
+  zoomSpeed: 5
+  minDistance: 5
+  maxDistance: 20
+  rotationSpeed: 300
+  rotationLimits: {x: -90, y: 90}
+  moveSpeed: 10
+  deselectKey: 114
 --- !u!1 &1114630692
 GameObject:
   m_ObjectHideFlags: 0
@@ -1069,7 +1084,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1569021245495235640, guid: 86a7931b7be28fa43a9313c162881bec,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1075820424}
   m_SourcePrefab: {fileID: 100100000, guid: 86a7931b7be28fa43a9313c162881bec, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
