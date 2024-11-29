@@ -14,11 +14,14 @@ public class OrbitalCameraController : MonoBehaviour
     public float moveSpeed = 10.0f; // Vitesse de déplacement avec ZQSD
     public KeyCode deselectKey = KeyCode.R; // Touche pour désélectionner la cible
 
-    private float currentYaw = 0.0f; // Angle horizontal
-    private float currentPitch = 0.0f; // Angle vertical
-    
-    private Renderer currentTargetRenderer; // Référence au renderer de la cible
-    
+    private float _currentYaw = 0.0f; // Angle horizontal
+    private float _currentPitch = 0.0f; // Angle vertical
+
+    private Renderer _currentTargetRenderer; // Renderer de la cible
+    private GameObject _dimensionText; // GameObject pour afficher les dimensions
+
+    public Camera orbitalCamera; // Caméra principale à suivre
+
     void Update()
     {
         HandleZoom();
@@ -26,11 +29,11 @@ public class OrbitalCameraController : MonoBehaviour
         HandleMovement();
         HandleClickToSetTarget();
         HandleDeselectTarget();
+        UpdateTextOrientation();
     }
 
     void HandleZoom()
     {
-        // Gestion du zoom
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
         if (scrollInput != 0)
         {
@@ -41,13 +44,12 @@ public class OrbitalCameraController : MonoBehaviour
 
     void HandleRotation()
     {
-        // Rotation autour de la cible (ou de la caméra elle-même si aucune cible n'est définie)
         if (Input.GetMouseButton(1)) // Bouton droit de la souris
         {
-            currentYaw += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
-            currentPitch -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime;
+            _currentYaw += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
+            _currentPitch -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime;
 
-            currentPitch = Mathf.Clamp(currentPitch, rotationLimits.x, rotationLimits.y);
+            _currentPitch = Mathf.Clamp(_currentPitch, rotationLimits.x, rotationLimits.y);
         }
 
         UpdateCameraPosition();
@@ -55,31 +57,27 @@ public class OrbitalCameraController : MonoBehaviour
 
     void HandleMovement()
     {
-        // Déplacement avec les touches ZQSD (ou WASD en fonction du clavier)
         float horizontal = Input.GetAxis("Horizontal"); // Q/D ou A/D
         float vertical = Input.GetAxis("Vertical"); // Z/S ou W/S
 
         Vector3 direction = new Vector3(horizontal, 0, vertical);
-        transform.Translate(direction * moveSpeed * Time.deltaTime, Space.Self);
+        transform.Translate(direction * (moveSpeed * Time.deltaTime), Space.Self);
     }
 
     void HandleClickToSetTarget()
     {
-        // Détection du clic gauche pour définir une nouvelle cible
         if (Input.GetMouseButtonDown(0)) // Bouton gauche de la souris
         {
-            Ray ray = Camera.current.ScreenPointToRay(Input.mousePosition);
+            Ray ray = orbitalCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 if (hit.collider.gameObject.name.Contains("wall"))
                 {
-                    // Si un objet est cliqué, il devient la nouvelle cible
                     SetTarget(hit.collider.gameObject.transform);
                 }
             }
             else
             {
-                // Si aucun objet n'est cliqué, désélectionne la cible
                 ClearTarget();
             }
         }
@@ -87,7 +85,6 @@ public class OrbitalCameraController : MonoBehaviour
 
     void HandleDeselectTarget()
     {
-        // Désélectionner la cible si la touche spécifiée est pressée
         if (Input.GetKeyDown(deselectKey))
         {
             ClearTarget();
@@ -96,10 +93,9 @@ public class OrbitalCameraController : MonoBehaviour
 
     void UpdateCameraPosition()
     {
-        if (target != null)
+        if (target)
         {
-            // Orbite autour de la cible
-            Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0);
+            Quaternion rotation = Quaternion.Euler(_currentPitch, _currentYaw, 0);
             Vector3 offset = rotation * new Vector3(0, 0, -distance);
 
             transform.position = target.position + offset;
@@ -107,69 +103,108 @@ public class OrbitalCameraController : MonoBehaviour
         }
         else
         {
-            // Rotation sur place si aucune cible n'est définie
-            Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0);
+            Quaternion rotation = Quaternion.Euler(_currentPitch, _currentYaw, 0);
             transform.rotation = rotation;
         }
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     void SetTarget(Transform newTarget)
     {
-        // Supprimer l'effet de contour de l'ancienne cible
-        ClearTarget();
-
-        target = newTarget;
-
-        // Récupérer le centre du collider si présent
-        Collider collider = target.GetComponent<Collider>();
-        if (collider != null)
+        if (newTarget != target)
         {
-            target.position = collider.bounds.center; // Met le centre du collider comme point de focus
-        }
+            ClearTarget();
+            target = newTarget;
 
-        // Ajouter un effet de contour orange à la nouvelle cible
-        currentTargetRenderer = target.GetComponent<Renderer>();
-        if (currentTargetRenderer != null)
-        {
-            currentTargetRenderer.material.SetColor("_OutlineColor", Color.yellow);
-            currentTargetRenderer.material.SetFloat("_OutlineWidth", 0.03f); // Exemple de largeur de contour
+            Collider collider = target.GetComponent<Collider>();
+            if (collider != null)
+            {
+                target.position = collider.bounds.center;
+            }
+
+            Outline outline = target.GetComponent<Outline>();
+            if (!outline)
+            {
+                outline = target.gameObject.AddComponent<Outline>();
+            }
+
+            outline.OutlineColor = new Color(1, 0.5f, 0);
+            outline.OutlineWidth = 7f;
+            outline.OutlineMode = Outline.Mode.OutlineAll;
+
+            _currentTargetRenderer = target.GetComponent<Renderer>();
+
+            // Afficher les dimensions
+            ShowWallDimensions(target);
         }
     }
 
-
-    void ClearTarget()
+    public void ClearTarget()
     {
-        // Supprimer l'effet de contour de la cible actuelle
-        if (currentTargetRenderer != null)
+        if (target)
         {
-            currentTargetRenderer.material.SetFloat("_OutlineWidth", 0f); // Réinitialise le contour
-            currentTargetRenderer = null;
+            Outline outline = target.GetComponent<Outline>();
+            if (outline)
+            {
+                Destroy(outline); // Supprimer l'effet de contour
+            }
         }
 
+        if (_dimensionText)
+        {
+            Destroy(_dimensionText); // Supprimer le texte affiché
+        }
+
+        _currentTargetRenderer = null;
         target = null;
     }
-    
-    public string GetTargetParameters()
+
+
+    // ReSharper disable Unity.PerformanceAnalysis
+    void ShowWallDimensions(Transform wall)
     {
-        if (target == null)
+        // Création d'un texte 3D pour afficher les dimensions
+        if (_dimensionText != null)
         {
-            return "Aucune cible sélectionnée.";
+            Destroy(_dimensionText);
         }
 
-        string targetName = target.name;
-        Vector3 position = target.position;
-        Quaternion rotation = target.rotation;
+        _dimensionText = new GameObject("WallDimensions");
+        TextMesh textMesh = _dimensionText.AddComponent<TextMesh>();
+        textMesh.fontSize = 24;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.alignment = TextAlignment.Center;
 
-        string dimensions = "Inconnues";
-        Collider collider = target.GetComponent<Collider>();
-        if (collider != null)
+        Collider collider = wall.GetComponent<Collider>();
+        if (collider)
         {
-            dimensions = collider.bounds.size.ToString();
+            Vector3 size = collider.bounds.size;
+            textMesh.text = $"Width: {size.x:F2}\nHeight: {size.y:F2}\nDepth: {size.z:F2}";
+        }
+        else
+        {
+            textMesh.text = "Dimensions inconnues";
         }
 
-        return $"Nom : {targetName}\n" +
-               $"Position : {position}\n" +
-               $"Rotation : {rotation.eulerAngles}\n" +
-               $"Dimensions (bounds) : {dimensions}";
+        textMesh.color = Color.black;
+
+        // Positionner le texte au-dessus du mur
+        _dimensionText.transform.position = wall.position + Vector3.up * 2;
+        _dimensionText.transform.localScale = Vector3.one * 0.1f;
+    }
+
+    void UpdateTextOrientation()
+    {
+        if (_dimensionText && orbitalCamera)
+        {
+            // Faire en sorte que le texte regarde la caméra
+            _dimensionText.transform.LookAt(orbitalCamera.transform);
+
+            // Inverser l'axe pour éviter une orientation inversée
+            _dimensionText.transform.rotation = Quaternion.LookRotation(orbitalCamera.transform.forward);
+
+            // Assurer une échelle uniforme
+            _dimensionText.transform.localScale = Vector3.one * 0.1f;
+        }
     }
 }

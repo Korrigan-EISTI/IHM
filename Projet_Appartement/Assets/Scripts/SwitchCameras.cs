@@ -3,6 +3,7 @@ using UnityEngine;
 public class CameraSwitcher : MonoBehaviour
 {
     [SerializeField] private Transform cameras;
+    [SerializeField] private OrbitalCameraController orbitalCameraController;
     public KeyCode switchKey = KeyCode.C; // Touche pour changer de caméra
     private int currentCameraIndex = 0;
     
@@ -28,6 +29,8 @@ public class CameraSwitcher : MonoBehaviour
 
     void SwitchCamera()
     {
+        // Désélectionner l'objet cible si OrbitalCameraController est défini
+        orbitalCameraController?.ClearTarget();
         // Désactiver la caméra actuelle
         cameras.GetChild(currentCameraIndex).gameObject.SetActive(false);
 
