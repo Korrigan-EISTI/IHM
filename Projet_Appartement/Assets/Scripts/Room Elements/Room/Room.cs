@@ -76,21 +76,6 @@ public class Room
     }
 
     /// <summary>
-    /// Divise un mur existant en deux au point spécifié.
-    /// </summary>
-    public void SplitWall(Wall wall, Vector3 splitPoint)
-    {
-        if (walls.Contains(wall))
-        {
-            wall.SplitWall(splitPoint);
-        }
-        else
-        {
-            Debug.LogWarning("Wall not found in this room.");
-        }
-    }
-
-    /// <summary>
     /// Vérifie si la pièce est fermée.
     /// </summary>
     public bool IsClosed()

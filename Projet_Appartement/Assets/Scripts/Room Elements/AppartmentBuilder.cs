@@ -1,23 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering.UI;
-
-public enum ConstructionMode
-{
-    Apartment,
-    Room
-}
 
 public class ApartmentManager : MonoBehaviour
 {
-    public GameObject wallPrefab; // Assign in Unity Editor
-    public List<Room> rooms = new List<Room>();
+    public GameObject wallPrefab;
+    public LineRenderer lineRenderer;
+    public Material floorMaterial;
     private Room currentRoom;
-    private bool isCreatingRoom = false; // Booléen pour indiquer si une pièce est en cours de création
-    private int nbWallClicked = 0; // Booléen pour indiquer si une pièce est en cours de création
     public Transform apartmentParent;
-    public ConstructionMode mode = ConstructionMode.Apartment;
-    private float y = 1.26f;
+    private GameObject apartmentObject;
+    private float y = 1f;
 
     void Start()
     {
@@ -31,252 +23,213 @@ public class ApartmentManager : MonoBehaviour
 
     private void InitializeRoom()
     {
-        Debug.Log($"Initializing a new {mode}...");
+        Debug.Log("Initializing a new room...");
         currentRoom = new Room(wallPrefab);
-        rooms.Add(currentRoom);
+        ActivateLineRenderer();
+    }
+
+    private void ActivateLineRenderer()
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = true; // Enable the LineRenderer
+            lineRenderer.positionCount = 0; // Reset position count
+        }
+    }
+
+    private void DeactivateLineRenderer()
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false; // Disable the LineRenderer
+        }
     }
 
     private void HandleMouseInput()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Camera.current.name == "BlueprintCamera" && apartmentObject == null)
         {
             Vector3 mousePosition = GetMouseWorldPosition();
+            mousePosition = SnapToGrid(mousePosition, 0.25f);
+            mousePosition.y = y;
 
-            if (mode == ConstructionMode.Apartment)
+            if (currentRoom == null)
             {
-                if (currentRoom == null)
-                {
-                    InitializeRoom();
-                }
-
-                mousePosition.y = 1.26f;
-                currentRoom.AddCorner(mousePosition, rooms, null);
-
-                if (currentRoom.corners.Count > 2 && IsNearFirstCorner(mousePosition, currentRoom))
-                {
-                    Debug.Log("Apartment contour closed!");
-                    CompleteApartment();
-                }
+                InitializeRoom();
             }
-            else if (mode == ConstructionMode.Room)
+
+            // Add the clicked point as a corner
+            currentRoom.AddCorner(mousePosition, null, null);
+            UpdateLineRenderer();
+
+            if (currentRoom.corners.Count > 2 && IsNearFirstCorner(mousePosition, currentRoom))
             {
-                if (!isCreatingRoom)
-                {
-                    // Démarrer la création d'une nouvelle pièce
-                    isCreatingRoom = true;
-                    InitializeRoom();
-                    Debug.Log("Room creation started.");
-                }
-                if (isCreatingRoom)
-                {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
-                    {
-                        Wall clickedWall = hit.collider.GetComponent<Wall>();
-                        Vector3 point = hit.point;
-                        point.y = 1.26f;
-                        if (nbWallClicked > 0)
-                            currentRoom.AddCorner(point, rooms, null);
-                        if (clickedWall != null)
-                        {
-                            if (nbWallClicked <= 0)
-                                currentRoom.AddCorner(point, rooms, null);
-                            nbWallClicked++;
-
-                            if (currentRoom.corners.Count >= 2 && nbWallClicked >= 2)
-                            {
-                                Debug.Log("Room closed. Finalizing room creation.");
-
-                                Room parentRoom = FindRoomContainingWall(clickedWall);
-                                if (parentRoom != null)
-                                {
-                                    FinalizeRoomWithIntersection(parentRoom, currentRoom);
-                                }
-
-                                InitializeRoom(); // Préparer la prochaine pièce
-                                isCreatingRoom = false; // Terminer l'état de création
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log("Clicked object is not a wall. Ignoring input.");
-                        }
-                    }
-                }
+                Debug.Log("Room contour closed!");
+                CompleteRoom();
             }
         }
     }
 
-    private void CompleteApartment()
+    private void UpdateLineRenderer()
     {
-        Debug.Log("Apartment outline completed. Switching to Room mode...");
-        CreateApartmentParent();
-        mode = ConstructionMode.Room;
-        InitializeRoom();
+        if (lineRenderer == null || currentRoom == null)
+            return;
+
+        // Update the LineRenderer with the corners
+        lineRenderer.positionCount = currentRoom.corners.Count;
+        for (int i = 0; i < currentRoom.corners.Count; i++)
+        {
+            lineRenderer.SetPosition(i, currentRoom.corners[i]);
+        }
     }
 
-    private void CreateApartmentParent()
+    private void CompleteRoom()
     {
-        if (apartmentParent == null)
-        {
-            apartmentParent = new GameObject("Apartment").transform;
-        }
+        Debug.Log("Room outline completed. Grouping walls...");
+        CreateRoomParent();
+        GenerateFloorMesh();
 
-        foreach (var room in rooms)
-        {
-            foreach (var wall in room.walls)
-            {
-                wall.transform.SetParent(apartmentParent);
-            }
-        }
-        Debug.Log("Apartment parent created and walls grouped.");
+        // Deactivate LineRenderer for the current room
+        DeactivateLineRenderer();
     }
 
-    private void FinalizeRoomWithIntersection(Room parentRoom, Room newRoom)
-    { 
-        Vector3 firstCorner = newRoom.corners[0];
-        Vector3 lastCorner = newRoom.corners[newRoom.corners.Count - 1];
+    private void CreateRoomParent()
+    {
+        apartmentObject = new GameObject("Apartment");
+        apartmentParent = apartmentObject.transform;
 
-        (Vector3 start1, Vector3 end1) = FindSegmentAssociatedWithPoint(parentRoom, firstCorner);
-        (Vector3 start2, Vector3 end2) = FindSegmentAssociatedWithPoint(parentRoom, lastCorner);
-
-        Vector3 intersectionPoint = CalculateIntersection(start1, end1, start2, end2);
-
-        if (intersectionPoint != Vector3.zero)
+        foreach (var wall in currentRoom.walls)
         {
-            intersectionPoint.y = 1.26f;
-            newRoom.AddCorner(intersectionPoint, rooms, parentRoom);
+            wall.transform.SetParent(apartmentParent);
+        }
 
-            foreach (Vector3 corner in newRoom.corners)
+        Debug.Log("Room parent created and walls grouped.");
+    }
+
+    private void GenerateFloorMesh()
+    {
+        if (currentRoom.corners.Count < 3)
+        {
+            Debug.LogError("Not enough corners to generate a floor mesh.");
+            return;
+        }
+
+        GameObject floor = new GameObject("Floor");
+        floor.transform.SetParent(apartmentParent);
+
+        MeshFilter meshFilter = floor.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = floor.AddComponent<MeshRenderer>();
+
+        // Assign a basic material
+        meshRenderer.material = floorMaterial;
+
+        Mesh mesh = new Mesh();
+        meshFilter.mesh = mesh;
+
+        List<Vector3> vertices = new List<Vector3>();
+        foreach (var corner in currentRoom.corners)
+        {
+            vertices.Add(new Vector3(corner.x, 0f, corner.z));
+        }
+
+        int[] triangles = EarClippingTriangulation(vertices);
+
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles;
+
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        Debug.Log("Floor mesh generated.");
+    }
+
+    private int[] EarClippingTriangulation(List<Vector3> vertices)
+    {
+        List<int> indices = new List<int>();
+        List<int> remainingVertices = new List<int>();
+        for (int i = 0; i < vertices.Count; i++) remainingVertices.Add(i);
+
+        while (remainingVertices.Count > 3)
+        {
+            bool earFound = false;
+            for (int i = 0; i < remainingVertices.Count; i++)
             {
-                Vector3 nextCorner = newRoom.GetNextCorner(corner);
-                if (nextCorner != Vector3.zero)
+                int prev = remainingVertices[(i - 1 + remainingVertices.Count) % remainingVertices.Count];
+                int curr = remainingVertices[i];
+                int next = remainingVertices[(i + 1) % remainingVertices.Count];
+
+                if (IsEar(vertices, prev, curr, next, remainingVertices))
                 {
-                    newRoom.AddWall(corner, nextCorner);
-                }
-            }
-
-            Room remainingRoom = CreateRemainingRoom(parentRoom, newRoom);
-            rooms.Remove(parentRoom);
-            rooms.Add(newRoom);
-            rooms.Add(remainingRoom);
-
-            parentRoom.DestroyAllWalls();
-
-            OrganizeRoomHierarchy(newRoom);
-            OrganizeRoomHierarchy(remainingRoom);
-
-            Debug.Log("Room finalized with intersection point.");
-        }
-        else
-        {
-            Debug.LogError("No valid intersection found. Aborting room creation.");
-        }
-    }
-
-    private (Vector3 start, Vector3 end) FindSegmentAssociatedWithPoint(Room room, Vector3 point)
-    {
-        foreach (var wall in room.walls)
-        {
-            if (wall.IsPointOnWall(point))
-            {
-                return (wall.startPoint, wall.endPoint);
-            }
-        }
-        return (Vector3.zero, Vector3.zero);
-    }
-
-    private Vector3 CalculateIntersection(Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2)
-    {
-        Vector3 direction1 = end1 - start1;
-        Vector3 direction2 = end2 - start2;
-
-        float a1 = direction1.z;
-        float b1 = -direction1.x;
-        float c1 = a1 * start1.x + b1 * start1.z;
-
-        float a2 = direction2.z;
-        float b2 = -direction2.x;
-        float c2 = a2 * start2.x + b2 * start2.z;
-
-        float determinant = a1 * b2 - a2 * b1;
-
-        if (Mathf.Abs(determinant) < 0.0001f)
-        {
-            return Vector3.zero;
-        }
-
-        float intersectX = (b2 * c1 - b1 * c2) / determinant;
-        float intersectZ = (a1 * c2 - a2 * c1) / determinant;
-
-        return new Vector3(intersectX, 0, intersectZ);
-    }
-
-    private Room CreateRemainingRoom(Room parentRoom, Room newRoom)
-    {
-        Room remainingRoom = new Room(wallPrefab);
-
-        foreach (var wall in parentRoom.walls)
-        {
-            bool belongsToNewRoom = false;
-
-            foreach (var corner in newRoom.corners)
-            {
-                if (wall.IsPointOnWall(corner))
-                {
-                    belongsToNewRoom = true;
+                    indices.Add(prev);
+                    indices.Add(curr);
+                    indices.Add(next);
+                    remainingVertices.RemoveAt(i);
+                    earFound = true;
                     break;
                 }
             }
 
-            if (!belongsToNewRoom)
+            if (!earFound)
             {
-                remainingRoom.AddWall(wall.startPoint, wall.endPoint);
+                Debug.LogError("Failed to triangulate: Input might be non-simple or degenerate.");
+                break;
             }
         }
-        return remainingRoom;
+
+        if (remainingVertices.Count == 3)
+        {
+            indices.Add(remainingVertices[0]);
+            indices.Add(remainingVertices[1]);
+            indices.Add(remainingVertices[2]);
+        }
+
+        return indices.ToArray();
+    }
+
+    private bool IsEar(List<Vector3> vertices, int prev, int curr, int next, List<int> remainingVertices)
+    {
+        Vector3 a = vertices[prev];
+        Vector3 b = vertices[curr];
+        Vector3 c = vertices[next];
+
+        if (Vector3.Cross(b - a, c - a).y <= 0)
+            return false;
+
+        for (int i = 0; i < remainingVertices.Count; i++)
+        {
+            int testIndex = remainingVertices[i];
+            if (testIndex == prev || testIndex == curr || testIndex == next)
+                continue;
+
+            if (PointInTriangle(vertices[testIndex], a, b, c))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool PointInTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
+    {
+        Vector3 v0 = c - a;
+        Vector3 v1 = b - a;
+        Vector3 v2 = p - a;
+
+        float dot00 = Vector3.Dot(v0, v0);
+        float dot01 = Vector3.Dot(v0, v1);
+        float dot02 = Vector3.Dot(v0, v2);
+        float dot11 = Vector3.Dot(v1, v1);
+        float dot12 = Vector3.Dot(v1, v2);
+
+        float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+        return (u >= 0) && (v >= 0) && (u + v < 1);
     }
 
     private bool IsNearFirstCorner(Vector3 point, Room room)
     {
         return Vector3.Distance(point, room.corners[0]) < 0.8f;
-    }
-
-    private Room FindRoomContainingWall(Wall wall)
-    {
-        foreach (var room in rooms)
-        {
-            if (room.walls.Contains(wall))
-            {
-                return room;
-            }
-        }
-        return null;
-    }
-    private void OrganizeRoomHierarchy(Room room)
-    {
-        // Vérifie si un GameObject parent existe déjà pour cette pièce
-        if (room.roomParent == null)
-        {
-            // Crée un nouveau GameObject pour la pièce
-            GameObject roomObject = new GameObject($"Room_{rooms.IndexOf(room)}");
-            room.roomParent = roomObject.transform;
-
-            // Place ce parent dans l'arbre de l'appartement
-            if (apartmentParent == null)
-            {
-                apartmentParent = new GameObject("Apartment").transform;
-            }
-            room.roomParent.SetParent(apartmentParent);
-        }
-
-        // Regroupe les murs de la pièce sous le parent
-        foreach (var wall in room.walls)
-        {
-            wall.transform.SetParent(room.roomParent);
-        }
-
-        Debug.Log($"Room hierarchy updated for Room_{rooms.IndexOf(room)}");
     }
 
     private Vector3 GetMouseWorldPosition()
@@ -287,5 +240,12 @@ public class ApartmentManager : MonoBehaviour
             return hit.point;
         }
         return Vector3.zero;
+    }
+
+    private Vector3 SnapToGrid(Vector3 position, float gridSize)
+    {
+        float x = Mathf.Round(position.x / gridSize) * gridSize;
+        float z = Mathf.Round(position.z / gridSize) * gridSize;
+        return new Vector3(x, position.y, z);
     }
 }

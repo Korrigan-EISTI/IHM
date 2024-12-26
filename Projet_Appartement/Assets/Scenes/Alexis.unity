@@ -340,50 +340,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 6532829185271859217}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &876257842
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 876257843}
-  - component: {fileID: 876257844}
-  m_Layer: 0
-  m_Name: CameraMouvementManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &876257843
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 876257842}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1114630693}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &876257844
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 876257842}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8804a251240e07d429477e8019538bc4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1075820424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,6 +361,13 @@ MonoBehaviour:
   rotationLimits: {x: -90, y: 90}
   moveSpeed: 10
   deselectKey: 114
+  orbitalCamera: {fileID: 1075820426}
+--- !u!20 &1075820426 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 2826329753230264868, guid: 86a7931b7be28fa43a9313c162881bec,
+    type: 3}
+  m_PrefabInstance: {fileID: 6532829185271859217}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1114630692
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,7 +398,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1852180162}
-  - {fileID: 876257843}
   - {fileID: 1243020461}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -484,6 +446,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameras: {fileID: 576211195}
+  orbitalCameraController: {fileID: 1075820424}
+  blueprint: {fileID: 1828004642}
+  renderLine: {fileID: 1651861693}
   switchKey: 99
 --- !u!1 &1332343641
 GameObject:
@@ -634,7 +599,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1651861694
 Transform:
   m_ObjectHideFlags: 0
@@ -795,6 +760,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blueprint
       objectReference: {fileID: 0}
+    - target: {fileID: 572673878444048434, guid: 10c575ce70c666c4ea67c3eb5615d171,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3064364235239641030, guid: 10c575ce70c666c4ea67c3eb5615d171,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -910,8 +880,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wallPrefab: {fileID: 5231392639519416037, guid: b93e59254a7da7e43bcb1e5b8ad3a0e1,
     type: 3}
+  lineRenderer: {fileID: 1651861695}
+  floorMaterial: {fileID: 2100000, guid: 2df014a817db00043b229dbd537d41d0, type: 2}
   apartmentParent: {fileID: 2079190795}
-  mode: 0
 --- !u!1 &2079190794
 GameObject:
   m_ObjectHideFlags: 0

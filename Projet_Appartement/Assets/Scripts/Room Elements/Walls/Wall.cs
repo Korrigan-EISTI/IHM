@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Wall : MonoBehaviour
 {
     public Vector3 startPoint;
     public Vector3 endPoint;
+
+    public GameObject windowPrefab; // Prefab de la fenêtre à instancier.
 
     /// <summary>
     /// Initialise un mur avec ses points de départ et d'arrivée.
@@ -24,7 +27,6 @@ public class Wall : MonoBehaviour
 
         // Calcul de la direction et application de la rotation
         Vector3 direction = end - start;
-
         if (direction != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(direction);
@@ -40,26 +42,10 @@ public class Wall : MonoBehaviour
     }
 
     /// <summary>
-    /// Divise le mur en deux parties au point donné.
-    /// </summary>
-    public void SplitWall(Vector3 splitPoint)
-    {
-        // Créer un nouveau mur pour la seconde moitié
-        Wall newWall = Instantiate(this, transform.parent);
-        newWall.Initialize(splitPoint, endPoint);
-
-        // Mettre à jour ce mur pour la première moitié
-        Initialize(startPoint, splitPoint);
-
-        Debug.Log($"Wall split at {splitPoint}. Created new wall: {newWall.name}");
-    }
-
-    /// <summary>
     /// Vérifie si un point donné est situé sur ce mur.
     /// </summary>
     public bool IsPointOnWall(Vector3 point)
     {
-        // Vérifie si le point est dans les bounds du GameObject
         Collider wallCollider = GetComponent<Collider>();
         if (wallCollider != null && wallCollider.bounds.Contains(point))
         {
@@ -68,6 +54,66 @@ public class Wall : MonoBehaviour
 
         return false; // Le point n'est pas sur ce mur
     }
+    private void AdjustWallSegment(Vector3 startPoint, Vector3 endPoint)
+    {
+        Vector3 direction = endPoint - startPoint;
+        transform.position = (startPoint + endPoint) / 2;
+        transform.localScale = new Vector3(0.1f, transform.localScale.y, direction.magnitude);
+    }
 
+    public void AddWindow(Vector3 windowCenter, float windowWidth)
+    {
+        if (windowWidth <= 0)
+        {
+            Debug.LogError("Window width must be greater than zero.");
+            return;
+        }
 
+        // Calcul de la distance entre les points de départ et d'arrivée
+        float wallLength = Vector3.Distance(startPoint, endPoint);
+        if (windowWidth >= wallLength)
+        {
+            Debug.LogError("Window width cannot exceed or match wall length.");
+            return;
+        }
+
+        // Vérifier que la fenêtre peut être placée sur le mur
+        Vector3 wallDirection = (endPoint - startPoint).normalized;
+        Vector3 localStartToWindow = windowCenter - startPoint;
+        float distanceToWindow = Vector3.Dot(localStartToWindow, wallDirection);
+
+        if (distanceToWindow - windowWidth / 2 < 0 || distanceToWindow + windowWidth / 2 > wallLength)
+        {
+            Debug.LogError("Window placement is outside of wall boundaries.");
+            return;
+        }
+
+        // Instancier le prefab de la fenêtre
+        GameObject window = Instantiate(windowPrefab, transform.parent);
+        window.transform.position = windowCenter;
+        window.transform.rotation = transform.rotation;
+
+        // Ajuster la taille de la fenêtre pour qu'elle corresponde à la largeur spécifiée
+        Vector3 windowScale = window.transform.localScale;
+        window.transform.localScale = new Vector3(windowWidth, windowScale.y, windowScale.z);
+
+        // Créer deux nouveaux morceaux de mur (gauche et droit)
+        Vector3 leftEnd = startPoint + wallDirection * (distanceToWindow - windowWidth / 2);
+        Vector3 rightStart = startPoint + wallDirection * (distanceToWindow + windowWidth / 2);
+
+        foreach (Wall wall in window.GetComponentsInChildren<Wall>())
+        {
+            if (wall.name.Contains("LeftWall"))
+            {
+                wall.AdjustWallSegment(startPoint, leftEnd);
+            }
+            else if (wall.name.Contains("RightWall"))
+            {
+                wall.AdjustWallSegment(rightStart, endPoint);
+            }
+        }
+
+        // Détruire le mur d'origine
+        Destroy(gameObject);
+    }
 }

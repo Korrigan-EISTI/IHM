@@ -4,6 +4,9 @@ public class CameraSwitcher : MonoBehaviour
 {
     [SerializeField] private Transform cameras;
     [SerializeField] private OrbitalCameraController orbitalCameraController;
+    [SerializeField] private GameObject blueprint;
+    [SerializeField] private GameObject renderLine;
+
     public KeyCode switchKey = KeyCode.C; // Touche pour changer de caméra
     private int currentCameraIndex = 0;
     
@@ -40,5 +43,16 @@ public class CameraSwitcher : MonoBehaviour
         // Activer la nouvelle caméra
         cameras.GetChild(currentCameraIndex).gameObject.SetActive(true);
         Camera.SetupCurrent(cameras.GetChild(currentCameraIndex).GetComponent<Camera>());
+
+        if (Camera.current.name == "BlueprintCamera")
+        {
+            blueprint.SetActive(true);
+            renderLine.SetActive(true);
+        }
+        else
+        {
+            blueprint.SetActive(false);
+            renderLine.SetActive(false);
+        }
     }
 }

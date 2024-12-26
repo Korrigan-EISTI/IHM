@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class OrbitalCameraController : MonoBehaviour
 {
@@ -19,10 +20,13 @@ public class OrbitalCameraController : MonoBehaviour
 
     private Renderer _currentTargetRenderer; // Renderer de la cible
     private GameObject _dimensionText; // GameObject pour afficher les dimensions
+    private GameObject _canvasObject; // Canvas dynamique
 
     public Camera orbitalCamera; // Caméra principale à suivre
 
-    void Update()
+    public GameObject buttonPrefab; // Prefab du bouton à ajouter au canvas
+
+    private void Update()
     {
         HandleZoom();
         HandleRotation();
@@ -32,7 +36,7 @@ public class OrbitalCameraController : MonoBehaviour
         UpdateTextOrientation();
     }
 
-    void HandleZoom()
+    private void HandleZoom()
     {
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
         if (scrollInput != 0)
@@ -42,7 +46,7 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
-    void HandleRotation()
+    private void HandleRotation()
     {
         if (Input.GetMouseButton(1)) // Bouton droit de la souris
         {
@@ -55,7 +59,7 @@ public class OrbitalCameraController : MonoBehaviour
         UpdateCameraPosition();
     }
 
-    void HandleMovement()
+    private void HandleMovement()
     {
         float horizontal = Input.GetAxis("Horizontal"); // Q/D ou A/D
         float vertical = Input.GetAxis("Vertical"); // Z/S ou W/S
@@ -64,7 +68,7 @@ public class OrbitalCameraController : MonoBehaviour
         transform.Translate(direction * (moveSpeed * Time.deltaTime), Space.Self);
     }
 
-    void HandleClickToSetTarget()
+    private void HandleClickToSetTarget()
     {
         if (Input.GetMouseButtonDown(0)) // Bouton gauche de la souris
         {
@@ -83,7 +87,7 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
-    void HandleDeselectTarget()
+    private void HandleDeselectTarget()
     {
         if (Input.GetKeyDown(deselectKey))
         {
@@ -91,7 +95,7 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
-    void UpdateCameraPosition()
+    private void UpdateCameraPosition()
     {
         if (target)
         {
@@ -108,8 +112,7 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
-    // ReSharper disable Unity.PerformanceAnalysis
-    void SetTarget(Transform newTarget)
+    private void SetTarget(Transform newTarget)
     {
         if (newTarget != target)
         {
@@ -136,6 +139,9 @@ public class OrbitalCameraController : MonoBehaviour
 
             // Afficher les dimensions
             ShowWallDimensions(target);
+
+            // Créer un Canvas attaché au mur
+            CreateCanvasOnWall(target);
         }
     }
 
@@ -155,15 +161,17 @@ public class OrbitalCameraController : MonoBehaviour
             Destroy(_dimensionText); // Supprimer le texte affiché
         }
 
+        if (_canvasObject)
+        {
+            Destroy(_canvasObject); // Supprimer le Canvas
+        }
+
         _currentTargetRenderer = null;
         target = null;
     }
 
-
-    // ReSharper disable Unity.PerformanceAnalysis
-    void ShowWallDimensions(Transform wall)
+    private void ShowWallDimensions(Transform wall)
     {
-        // Création d'un texte 3D pour afficher les dimensions
         if (_dimensionText != null)
         {
             Destroy(_dimensionText);
@@ -193,17 +201,68 @@ public class OrbitalCameraController : MonoBehaviour
         _dimensionText.transform.localScale = Vector3.one * 0.1f;
     }
 
-    void UpdateTextOrientation()
+    private void CreateCanvasOnWall(Transform wall)
+    {
+        if (_canvasObject != null)
+        {
+            Destroy(_canvasObject);
+        }
+
+        // Créer un Canvas attaché au mur
+        _canvasObject = new GameObject("WallCanvas");
+        _canvasObject.transform.SetParent(wall);
+        _canvasObject.transform.localPosition = Vector3.up * 2; // Positionner au-dessus du mur
+
+        Canvas canvas = _canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+
+        CanvasScaler scaler = _canvasObject.AddComponent<CanvasScaler>();
+        scaler.dynamicPixelsPerUnit = 10;
+
+        // Ajouter un bouton au Canvas
+        if (buttonPrefab)
+        {
+            GameObject button = Instantiate(buttonPrefab, _canvasObject.transform);
+            RectTransform rectTransform = button.GetComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(200, 100); // Taille du bouton
+            rectTransform.localPosition = Vector3.zero; // Centrer dans le Canvas
+
+            Button uiButton = button.GetComponent<Button>();
+            if (uiButton != null)
+            {
+                uiButton.onClick.AddListener(() => OnAddWindowClicked());
+            }
+        }
+    }
+
+    private void OnAddWindowClicked()
+    {
+        if (target)
+        {
+            Wall wallScript = target.GetComponent<Wall>();
+            if (wallScript != null)
+            {
+                // Définir les paramètres de la fenêtre
+                Vector3 wallCenter = target.position; // Centre du mur
+                float windowWidth = 1.0f; // Largeur fixe pour la fenêtre (modifiable)
+
+                // Ajouter une fenêtre au mur
+                wallScript.AddWindow(wallCenter, windowWidth);
+            }
+            else
+            {
+                Debug.LogError("Le script 'Wall' est manquant sur le mur sélectionné.");
+            }
+        }
+    }
+
+
+    private void UpdateTextOrientation()
     {
         if (_dimensionText && orbitalCamera)
         {
-            // Faire en sorte que le texte regarde la caméra
             _dimensionText.transform.LookAt(orbitalCamera.transform);
-
-            // Inverser l'axe pour éviter une orientation inversée
             _dimensionText.transform.rotation = Quaternion.LookRotation(orbitalCamera.transform.forward);
-
-            // Assurer une échelle uniforme
             _dimensionText.transform.localScale = Vector3.one * 0.1f;
         }
     }
