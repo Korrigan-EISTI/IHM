@@ -54,12 +54,35 @@ public class Wall : MonoBehaviour
 
         return false; // Le point n'est pas sur ce mur
     }
-    private void AdjustWallSegment(Vector3 startPoint, Vector3 endPoint)
+    public void AdjustWallSegment(Vector3 startPoint, Vector3 endPoint)
     {
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
+
         Vector3 direction = endPoint - startPoint;
         transform.position = (startPoint + endPoint) / 2;
         transform.localScale = new Vector3(0.1f, transform.localScale.y, direction.magnitude);
     }
+
+    public void AdjustWallSegmentMove(Vector3 startPoint, Vector3 endPoint)
+    {
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
+
+        // Calcul de la direction
+        Vector3 direction = endPoint - startPoint;
+
+        // Ajuster la position au milieu entre les deux points
+        transform.position = (startPoint + endPoint) / 2;
+
+        // Ajuster l'échelle : L'axe z représente la longueur du mur
+        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, direction.magnitude);
+
+        // Ajuster la rotation pour aligner le mur avec la direction
+        transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+    }
+
+
 
     public void AddWindow(Vector3 windowCenter, float windowWidth)
     {
@@ -113,7 +136,10 @@ public class Wall : MonoBehaviour
             }
         }
 
+
+        gameObject.transform.SetParent(window.transform);
         // Détruire le mur d'origine
-        Destroy(gameObject);
+        gameObject.name = "OldWall";
+        gameObject.SetActive(false);
     }
 }

@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,6 +26,8 @@ public class OrbitalCameraController : MonoBehaviour
     public Camera orbitalCamera; // Caméra principale à suivre
 
     public GameObject buttonPrefab; // Prefab du bouton à ajouter au canvas
+    private GameObject _translationGizmos;
+    ArrowInteraction _currentArrowInteraction;
 
     private void Update()
     {
@@ -75,17 +78,58 @@ public class OrbitalCameraController : MonoBehaviour
             Ray ray = orbitalCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                if (hit.collider.gameObject.name.Contains("wall"))
+                // Vérifier si l'utilisateur a cliqué sur une flèche
+                if (hit.collider != null && hit.collider.gameObject.name.Contains("Arrow"))
+                {
+                    // Obtenir la direction associée à la flèche
+                    ArrowInteraction arrowInteraction = hit.collider.GetComponent<ArrowInteraction>();
+                    if (arrowInteraction != null && target != null)
+                    {
+                        _currentArrowInteraction = arrowInteraction;
+                        _currentArrowInteraction.isDragging = true;
+                        _currentArrowInteraction.dragStartPosition = _currentArrowInteraction.GetMouseWorldPosition();
+                    }
+
+                    return; // Éviter tout autre comportement après avoir cliqué sur une flèche
+                }
+
+                // Sélectionner un mur
+                if (hit.collider.name.Contains("wall"))
                 {
                     SetTarget(hit.collider.gameObject.transform);
+                    OnAddWindowClicked();
                 }
-            }
-            else
-            {
-                ClearTarget();
+
+                // Sélectionner une fenêtre
+                if (hit.collider.transform.parent != null && hit.collider.transform.parent.name.Contains("WindowPrefab"))
+                {
+                    SetTarget(hit.collider.transform.parent);
+
+                    if (_translationGizmos)
+                        Destroy(_translationGizmos);
+
+                    // Créer les gizmos
+                    _translationGizmos = new GameObject("TranslationGizmos");
+                    HoleManipulator manipulator = _translationGizmos.AddComponent<HoleManipulator>();
+
+                    // Passer les sous-objets du trou au HoleManipulator
+                    manipulator.leftWall = target.Find("LeftWall");
+                    manipulator.rightWall = target.Find("RightWall");
+                    manipulator.topWall = target.Find("TopWall");
+                    manipulator.bottomWall = target.Find("BottomWall");
+                    manipulator.oldWall = target.Find("OldWall").GetComponent<Wall>();
+
+                    // Positionner les flèches au centre du trou
+                    _translationGizmos.transform.position = target.position;
+                }
+                else
+                {
+                    ClearTarget();
+                }
             }
         }
     }
+
 
     private void HandleDeselectTarget()
     {
@@ -152,23 +196,29 @@ public class OrbitalCameraController : MonoBehaviour
             Outline outline = target.GetComponent<Outline>();
             if (outline)
             {
-                Destroy(outline); // Supprimer l'effet de contour
+                Destroy(outline);
             }
+        }
+
+        if (_translationGizmos)
+        {
+            Destroy(_translationGizmos);
         }
 
         if (_dimensionText)
         {
-            Destroy(_dimensionText); // Supprimer le texte affiché
+            Destroy(_dimensionText);
         }
 
         if (_canvasObject)
         {
-            Destroy(_canvasObject); // Supprimer le Canvas
+            Destroy(_canvasObject);
         }
 
         _currentTargetRenderer = null;
         target = null;
     }
+
 
     private void ShowWallDimensions(Transform wall)
     {
