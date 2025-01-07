@@ -117,10 +117,12 @@ public class OrbitalCameraController : MonoBehaviour
                     manipulator.rightWall = target.Find("RightWall");
                     manipulator.topWall = target.Find("TopWall");
                     manipulator.bottomWall = target.Find("BottomWall");
-                    manipulator.oldWall = target.Find("OldWall").GetComponent<Wall>();
+                    //manipulator.oldWall = target.Find("OldWall").GetComponent<Wall>();
 
                     // Positionner les flèches au centre du trou
                     _translationGizmos.transform.position = target.position;
+
+                    manipulator.XArrow.transform.SetParent(_translationGizmos.transform, false);
                 }
                 else
                 {

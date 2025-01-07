@@ -12,7 +12,7 @@ public class ArrowInteraction : MonoBehaviour
     {
         // Enregistrer la position initiale de la souris
         isDragging = true;
-        
+        holeManipulator.XArrow.GetComponent<Renderer>().material.color = Color.yellow;
     }
 
     private void OnMouseDrag()
@@ -23,6 +23,10 @@ public class ArrowInteraction : MonoBehaviour
             Vector3 currentMousePosition = GetMouseWorldPosition();
             Vector3 delta = currentMousePosition - dragStartPosition;
 
+            // Log pour debug
+            if (delta.x > 0 || delta.z > 0)
+                Debug.Log($"Delta : {delta}");
+
             // Projeter le déplacement sur la direction de la flèche
             float movementInDirection = Vector3.Dot(delta, direction.normalized);
             Vector3 movement = direction.normalized * movementInDirection;
@@ -32,16 +36,15 @@ public class ArrowInteraction : MonoBehaviour
 
             // Mettre à jour la position de la souris
             dragStartPosition = currentMousePosition;
-
-            // Mettre à jour la position des flèches
-            holeManipulator.UpdateArrowPositions();
         }
     }
+
 
     private void OnMouseUp()
     {
         // Terminer le drag
         isDragging = false;
+        holeManipulator.XArrow.GetComponent<Renderer>().material.color = Color.red;
     }
 
     public Vector3 GetMouseWorldPosition()

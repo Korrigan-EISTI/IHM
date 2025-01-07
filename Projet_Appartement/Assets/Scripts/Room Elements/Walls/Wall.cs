@@ -61,7 +61,7 @@ public class Wall : MonoBehaviour
 
         Vector3 direction = endPoint - startPoint;
         transform.position = (startPoint + endPoint) / 2;
-        transform.localScale = new Vector3(0.1f, transform.localScale.y, direction.magnitude);
+        transform.localScale = new Vector3(0.15f, transform.localScale.y, direction.magnitude);
     }
 
     public void AdjustWallSegmentMove(Vector3 startPoint, Vector3 endPoint)
@@ -81,8 +81,6 @@ public class Wall : MonoBehaviour
         // Ajuster la rotation pour aligner le mur avec la direction
         transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
     }
-
-
 
     public void AddWindow(Vector3 windowCenter, float windowWidth)
     {
