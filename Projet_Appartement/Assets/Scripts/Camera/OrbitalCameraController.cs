@@ -95,7 +95,9 @@ public class OrbitalCameraController : MonoBehaviour
 
                 // Sélectionner un mur
                 if (hit.collider.name.Contains("wall"))
+                {
                     SetTarget(hit.collider.gameObject.transform);
+                }
 
                 // Sélectionner une fenêtre ou une porte
                 if (hit.collider.transform.parent != null && (hit.collider.transform.parent.name.Contains("WindowPrefab") || hit.collider.transform.parent.name.Contains("DoorPrefab")))
@@ -120,7 +122,8 @@ public class OrbitalCameraController : MonoBehaviour
 
                     manipulator.XArrow.transform.SetParent(_translationGizmos.transform, false);
                 }
-                else
+
+                if(hit.collider == null)
                 {
                     ClearTarget();
                 }
@@ -181,9 +184,6 @@ public class OrbitalCameraController : MonoBehaviour
 
             // Afficher les dimensions
             ShowWallDimensions(target);
-
-            // Créer un Canvas attaché au mur
-            CreateCanvasOnWall(target);
         }
     }
 
@@ -248,41 +248,6 @@ public class OrbitalCameraController : MonoBehaviour
         _dimensionText.transform.position = wall.position + Vector3.up * 2;
         _dimensionText.transform.localScale = Vector3.one * 0.1f;
     }
-
-    private void CreateCanvasOnWall(Transform wall)
-    {
-        if (_canvasObject != null)
-        {
-            Destroy(_canvasObject);
-        }
-
-        // Créer un Canvas attaché au mur
-        _canvasObject = new GameObject("WallCanvas");
-        _canvasObject.transform.SetParent(wall);
-        _canvasObject.transform.localPosition = Vector3.up * 2; // Positionner au-dessus du mur
-
-        Canvas canvas = _canvasObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-
-        CanvasScaler scaler = _canvasObject.AddComponent<CanvasScaler>();
-        scaler.dynamicPixelsPerUnit = 10;
-
-        // Ajouter un bouton au Canvas
-        if (buttonPrefab)
-        {
-            GameObject button = Instantiate(buttonPrefab, _canvasObject.transform);
-            RectTransform rectTransform = button.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(200, 100); // Taille du bouton
-            rectTransform.localPosition = Vector3.zero; // Centrer dans le Canvas
-
-            Button uiButton = button.GetComponent<Button>();
-            if (uiButton != null)
-            {
-                uiButton.onClick.AddListener(() => OnAddWindowClicked());
-            }
-        }
-    }
-
     private void OnAddWindowClicked()
     {
         if (target)
