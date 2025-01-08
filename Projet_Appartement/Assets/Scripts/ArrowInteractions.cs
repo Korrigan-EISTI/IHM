@@ -23,10 +23,6 @@ public class ArrowInteraction : MonoBehaviour
             Vector3 currentMousePosition = GetMouseWorldPosition();
             Vector3 delta = currentMousePosition - dragStartPosition;
 
-            // Log pour debug
-            if (delta.x > 0 || delta.z > 0)
-                Debug.Log($"Delta : {delta}");
-
             // Projeter le déplacement sur la direction de la flèche
             float movementInDirection = Vector3.Dot(delta, direction.normalized);
             Vector3 movement = direction.normalized * movementInDirection;

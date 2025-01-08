@@ -95,13 +95,10 @@ public class OrbitalCameraController : MonoBehaviour
 
                 // Sélectionner un mur
                 if (hit.collider.name.Contains("wall"))
-                {
                     SetTarget(hit.collider.gameObject.transform);
-                    OnAddWindowClicked();
-                }
 
-                // Sélectionner une fenêtre
-                if (hit.collider.transform.parent != null && hit.collider.transform.parent.name.Contains("WindowPrefab"))
+                // Sélectionner une fenêtre ou une porte
+                if (hit.collider.transform.parent != null && (hit.collider.transform.parent.name.Contains("WindowPrefab") || hit.collider.transform.parent.name.Contains("DoorPrefab")))
                 {
                     SetTarget(hit.collider.transform.parent);
 
@@ -117,7 +114,6 @@ public class OrbitalCameraController : MonoBehaviour
                     manipulator.rightWall = target.Find("RightWall");
                     manipulator.topWall = target.Find("TopWall");
                     manipulator.bottomWall = target.Find("BottomWall");
-                    //manipulator.oldWall = target.Find("OldWall").GetComponent<Wall>();
 
                     // Positionner les flèches au centre du trou
                     _translationGizmos.transform.position = target.position;
@@ -300,6 +296,27 @@ public class OrbitalCameraController : MonoBehaviour
 
                 // Ajouter une fenêtre au mur
                 wallScript.AddWindow(wallCenter, windowWidth);
+            }
+            else
+            {
+                Debug.LogError("Le script 'Wall' est manquant sur le mur sélectionné.");
+            }
+        }
+    }
+
+    private void OnAddDoorClicked()
+    {
+        if (target)
+        {
+            Wall wallScript = target.GetComponent<Wall>();
+            if (wallScript != null)
+            {
+                // Définir les paramètres de la fenêtre
+                Vector3 wallCenter = target.position; // Centre du mur
+                float windowWidth = 1.0f; // Largeur fixe pour la fenêtre (modifiable)
+
+                // Ajouter une fenêtre au mur
+                wallScript.AddDoor(wallCenter, windowWidth);
             }
             else
             {

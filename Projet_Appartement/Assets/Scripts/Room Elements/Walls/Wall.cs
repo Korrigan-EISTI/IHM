@@ -7,6 +7,7 @@ public class Wall : MonoBehaviour
     public Vector3 endPoint;
 
     public GameObject windowPrefab; // Prefab de la fenêtre à instancier.
+    public GameObject doorPrefab; // Prefab de la porte à instancier.
 
     /// <summary>
     /// Initialise un mur avec ses points de départ et d'arrivée.
@@ -136,6 +137,65 @@ public class Wall : MonoBehaviour
 
 
         gameObject.transform.SetParent(window.transform);
+        // Détruire le mur d'origine
+        gameObject.name = "OldWall";
+        gameObject.SetActive(false);
+    }
+
+    public void AddDoor(Vector3 doorCenter, float doorWidth)
+    {
+        if (doorWidth <= 0)
+        {
+            Debug.LogError("Window width must be greater than zero.");
+            return;
+        }
+
+        // Calcul de la distance entre les points de départ et d'arrivée
+        float wallLength = Vector3.Distance(startPoint, endPoint);
+        if (doorWidth >= wallLength)
+        {
+            Debug.LogError("Window width cannot exceed or match wall length.");
+            return;
+        }
+
+        // Vérifier que la fenêtre peut être placée sur le mur
+        Vector3 wallDirection = (endPoint - startPoint).normalized;
+        Vector3 localStartToWindow = doorCenter - startPoint;
+        float distanceToWindow = Vector3.Dot(localStartToWindow, wallDirection);
+
+        if (distanceToWindow - doorWidth / 2 < 0 || distanceToWindow + doorWidth / 2 > wallLength)
+        {
+            Debug.LogError("Window placement is outside of wall boundaries.");
+            return;
+        }
+
+        // Instancier le prefab de la fenêtre
+        GameObject door = Instantiate(doorPrefab, transform.parent);
+        door.transform.position = doorCenter;
+        door.transform.rotation = transform.rotation;
+
+        // Ajuster la taille de la fenêtre pour qu'elle corresponde à la largeur spécifiée
+        Vector3 doorScale = door.transform.localScale;
+        door.transform.localScale = new Vector3(doorWidth, doorScale.y, doorScale.z);
+
+        // Créer deux nouveaux morceaux de mur (gauche et droit)
+        Vector3 leftEnd = startPoint + wallDirection * (distanceToWindow - doorWidth / 2);
+        Vector3 rightStart = startPoint + wallDirection * (distanceToWindow + doorWidth / 2);
+
+        foreach (Wall wall in door.GetComponentsInChildren<Wall>())
+        {
+            if (wall.name.Contains("LeftWall"))
+            {
+                wall.AdjustWallSegment(startPoint, leftEnd);
+            }
+            else if (wall.name.Contains("RightWall"))
+            {
+                wall.AdjustWallSegment(rightStart, endPoint);
+            }
+        }
+
+
+        gameObject.transform.SetParent(door.transform);
         // Détruire le mur d'origine
         gameObject.name = "OldWall";
         gameObject.SetActive(false);

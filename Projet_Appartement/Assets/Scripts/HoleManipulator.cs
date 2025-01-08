@@ -57,8 +57,6 @@ public class HoleManipulator : MonoBehaviour
     {
         // Créer un cylindre pour représenter la flèche
         GameObject arrow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        arrow.transform.SetParent(GameObject.Find("TranslationGizmos").transform, false);
-
         arrow.name = name;
         arrow.transform.localScale = new Vector3(0.1f, 0.5f, 0.1f); // Échelle ajustée
         arrow.GetComponent<Renderer>().material.color = color; // Appliquer la couleur
@@ -222,12 +220,10 @@ public class HoleManipulator : MonoBehaviour
             // Contraintes pour les murs supérieurs et inférieurs
             Vector3 topWindowStart = new Vector3(newWindowStart.x, topWall.position.y, newWindowStart.z);
             Vector3 topWindowEnd = new Vector3(newWindowEnd.x, topWall.position.y, newWindowEnd.z);
+            topWall.GetComponent<Wall>().AdjustWallSegmentMove(topWindowStart, topWindowEnd);
 
             Vector3 botWindowStart = new Vector3(newWindowStart.x, bottomWall.position.y, newWindowStart.z);
             Vector3 botWindowEnd = new Vector3(newWindowEnd.x, bottomWall.position.y, newWindowEnd.z);
-
-            // Mettre à jour les segments des murs supérieurs et inférieurs
-            topWall.GetComponent<Wall>().AdjustWallSegmentMove(topWindowStart, topWindowEnd);
             bottomWall.GetComponent<Wall>().AdjustWallSegmentMove(botWindowStart, botWindowEnd);
 
             // Mettre à jour les positions des flèches

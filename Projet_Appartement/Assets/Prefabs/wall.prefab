@@ -138,3 +138,5 @@ MonoBehaviour:
   endPoint: {x: 0, y: 0, z: 0}
   windowPrefab: {fileID: 3164310673935229037, guid: 6bb4bc81f9d9d3b46b10314d7050523a,
     type: 3}
+  doorPrefab: {fileID: 3164310673935229037, guid: 2a811cbeef5f0bc4baf5cfd9dab08981,
+    type: 3}
