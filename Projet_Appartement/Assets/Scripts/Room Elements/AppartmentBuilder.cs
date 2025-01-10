@@ -229,7 +229,7 @@ public class ApartmentManager : MonoBehaviour
 
     private bool IsNearFirstCorner(Vector3 point, Room room)
     {
-        return Vector3.Distance(point, room.corners[0]) < 0.8f;
+        return Vector3.Distance(point, room.corners[0]) < 0.25f;
     }
 
     private Vector3 GetMouseWorldPosition()

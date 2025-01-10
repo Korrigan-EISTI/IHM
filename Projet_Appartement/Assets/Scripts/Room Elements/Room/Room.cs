@@ -80,7 +80,7 @@ public class Room
     /// </summary>
     public bool IsClosed()
     {
-        return corners.Count > 2 && Vector3.Distance(corners[corners.Count - 1], corners[0]) < 0.25;
+        return corners.Count > 2 && Vector3.Distance(corners[corners.Count - 1], corners[0]) < 0.15;
     }
 
     public Vector3 GetNextCorner(Vector3 currentCorner)
