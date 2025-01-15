@@ -131,6 +131,11 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
+    public void addWallToUndo(GameObject gameObject)
+    {
+        holesCreated.Push(gameObject);
+        holesDeleted.Clear();
+    }
 
     private void HandleDeselectTarget()
     {
@@ -222,11 +227,11 @@ public class OrbitalCameraController : MonoBehaviour
 
     public void onUndo()
     {
-        if (holesCreated.Count > 0)
+        if (holesDeleted.Count > 0)
         {
             GameObject go = holesCreated.Pop();
 
-            if (go.transform.parent != null)
+            if (go.transform.parent != null && go.transform.parent.name != "Appartment")
             {
                 GameObject prefab = go.transform.parent.gameObject;
 
@@ -239,6 +244,12 @@ public class OrbitalCameraController : MonoBehaviour
                 holesDeleted.Push(go);
                 ClearTarget();
             }
+            else
+            {
+                go.SetActive(!go.activeSelf); // Toggle active state
+                holesDeleted.Push(go);
+                ClearTarget();
+            }
         }
     }
 
@@ -248,7 +259,7 @@ public class OrbitalCameraController : MonoBehaviour
         {
             GameObject go = holesDeleted.Pop();
 
-            if (go.transform.parent != null)
+            if (go.transform.parent != null && go.transform.parent.name != "Appartment")
             {
                 GameObject prefab = go.transform.parent.gameObject;
 
@@ -261,6 +272,12 @@ public class OrbitalCameraController : MonoBehaviour
                 holesCreated.Push(go);
                 ClearTarget();
             }
+            else
+            {
+                go.SetActive(!go.activeSelf); // Toggle active state
+                holesCreated.Push(go);
+                ClearTarget();
+            }
         }
     }
 
@@ -268,7 +285,7 @@ public class OrbitalCameraController : MonoBehaviour
     {
         if (target != null)
         {
-            Destroy(target.gameObject);
+            target.gameObject.SetActive(false);
             ClearTarget();
             target = null;
         }
@@ -318,6 +335,7 @@ public class OrbitalCameraController : MonoBehaviour
 
                 // Ajouter une fenêtre au mur
                 holesCreated.Push(wallScript.AddWindow(wallCenter, windowWidth));
+                holesDeleted.Clear();
 
             }
             else
@@ -341,6 +359,7 @@ public class OrbitalCameraController : MonoBehaviour
                 // Ajouter une fenêtre au mur
                 wallScript.AddDoor(wallCenter, windowWidth);
                 holesCreated.Push(wallScript.AddWindow(wallCenter, windowWidth));
+                holesDeleted.Clear();
             }
             else
             {

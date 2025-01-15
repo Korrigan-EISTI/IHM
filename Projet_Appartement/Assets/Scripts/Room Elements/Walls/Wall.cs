@@ -40,6 +40,14 @@ public class Wall : MonoBehaviour
 
         // Ajuster la taille du mur en fonction de la distance entre start et end
         transform.localScale = new Vector3(0.1f, 2f, direction.magnitude);
+
+        foreach (Camera camera in Camera.allCameras)
+        {
+            if (camera.name.Contains("Orbital"))
+            {
+                camera.GetComponent<OrbitalCameraController>().addWallToUndo(gameObject);
+            }
+        }
     }
 
     /// <summary>
