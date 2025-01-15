@@ -83,12 +83,12 @@ public class Wall : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
     }
 
-    public void AddWindow(Vector3 windowCenter, float windowWidth)
+    public GameObject AddWindow(Vector3 windowCenter, float windowWidth)
     {
         if (windowWidth <= 0)
         {
             Debug.LogError("Window width must be greater than zero.");
-            return;
+            return null;
         }
 
         // Calcul de la distance entre les points de départ et d'arrivée
@@ -96,7 +96,7 @@ public class Wall : MonoBehaviour
         if (windowWidth >= wallLength)
         {
             Debug.LogError("Window width cannot exceed or match wall length.");
-            return;
+            return null;
         }
 
         // Vérifier que la fenêtre peut être placée sur le mur
@@ -107,7 +107,7 @@ public class Wall : MonoBehaviour
         if (distanceToWindow - windowWidth / 2 < 0 || distanceToWindow + windowWidth / 2 > wallLength)
         {
             Debug.LogError("Window placement is outside of wall boundaries.");
-            return;
+            return null;
         }
 
         // Instancier le prefab de la fenêtre
@@ -140,14 +140,16 @@ public class Wall : MonoBehaviour
         // Détruire le mur d'origine
         gameObject.name = "OldWall";
         gameObject.SetActive(false);
+
+        return gameObject;
     }
 
-    public void AddDoor(Vector3 doorCenter, float doorWidth)
+    public GameObject AddDoor(Vector3 doorCenter, float doorWidth)
     {
         if (doorWidth <= 0)
         {
             Debug.LogError("Window width must be greater than zero.");
-            return;
+            return null;
         }
 
         // Calcul de la distance entre les points de départ et d'arrivée
@@ -155,7 +157,7 @@ public class Wall : MonoBehaviour
         if (doorWidth >= wallLength)
         {
             Debug.LogError("Window width cannot exceed or match wall length.");
-            return;
+            return null;
         }
 
         // Vérifier que la fenêtre peut être placée sur le mur
@@ -166,7 +168,7 @@ public class Wall : MonoBehaviour
         if (distanceToWindow - doorWidth / 2 < 0 || distanceToWindow + doorWidth / 2 > wallLength)
         {
             Debug.LogError("Window placement is outside of wall boundaries.");
-            return;
+            return null;
         }
 
         // Instancier le prefab de la fenêtre
@@ -199,5 +201,7 @@ public class Wall : MonoBehaviour
         // Détruire le mur d'origine
         gameObject.name = "OldWall";
         gameObject.SetActive(false);
+
+        return gameObject;
     }
 }

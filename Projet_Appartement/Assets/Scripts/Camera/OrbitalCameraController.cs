@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,10 +25,11 @@ public class OrbitalCameraController : MonoBehaviour
     private GameObject _canvasObject; // Canvas dynamique
 
     public Camera orbitalCamera; // Caméra principale à suivre
-
-    public GameObject buttonPrefab; // Prefab du bouton à ajouter au canvas
     private GameObject _translationGizmos;
-    ArrowInteraction _currentArrowInteraction;
+    private ArrowInteraction _currentArrowInteraction;
+
+    private Stack<GameObject> holesCreated = new Stack<GameObject>();
+    private Stack<GameObject> holesDeleted = new Stack<GameObject>();
 
     private void Update()
     {
@@ -119,8 +121,6 @@ public class OrbitalCameraController : MonoBehaviour
 
                     // Positionner les flèches au centre du trou
                     _translationGizmos.transform.position = target.position;
-
-                    manipulator.XArrow.transform.SetParent(_translationGizmos.transform, false);
                 }
 
                 if(hit.collider == null)
@@ -183,7 +183,10 @@ public class OrbitalCameraController : MonoBehaviour
             _currentTargetRenderer = target.GetComponent<Renderer>();
 
             // Afficher les dimensions
-            ShowWallDimensions(target);
+            if (target.gameObject.name.Contains("wall"))
+                ShowWallDimensions(target);
+            else
+                ShowWallDimensions(target.Find("OldWall"));
         }
     }
 
@@ -217,6 +220,60 @@ public class OrbitalCameraController : MonoBehaviour
         target = null;
     }
 
+    public void onUndo()
+    {
+        if (holesCreated.Count > 0)
+        {
+            GameObject go = holesCreated.Pop();
+
+            if (go.transform.parent != null)
+            {
+                GameObject prefab = go.transform.parent.gameObject;
+
+                for (int i = 0; i < prefab.transform.childCount; i++)
+                {
+                    GameObject child = prefab.transform.GetChild(i).gameObject;
+                    child.SetActive(!child.activeSelf); // Toggle active state
+                }
+
+                holesDeleted.Push(go);
+                ClearTarget();
+            }
+        }
+    }
+
+    public void onRedo()
+    {
+        if (holesDeleted.Count > 0)
+        {
+            GameObject go = holesDeleted.Pop();
+
+            if (go.transform.parent != null)
+            {
+                GameObject prefab = go.transform.parent.gameObject;
+
+                for (int i = 0; i < prefab.transform.childCount; i++)
+                {
+                    GameObject child = prefab.transform.GetChild(i).gameObject;
+                    child.SetActive(!child.activeSelf); // Toggle active state
+                }
+
+                holesCreated.Push(go);
+                ClearTarget();
+            }
+        }
+    }
+
+    public void onDestroyWall()
+    {
+        if (target != null)
+        {
+            Destroy(target.gameObject);
+            ClearTarget();
+            target = null;
+        }
+            
+    }
 
     private void ShowWallDimensions(Transform wall)
     {
@@ -260,7 +317,8 @@ public class OrbitalCameraController : MonoBehaviour
                 float windowWidth = 1.0f; // Largeur fixe pour la fenêtre (modifiable)
 
                 // Ajouter une fenêtre au mur
-                wallScript.AddWindow(wallCenter, windowWidth);
+                holesCreated.Push(wallScript.AddWindow(wallCenter, windowWidth));
+
             }
             else
             {
@@ -282,6 +340,7 @@ public class OrbitalCameraController : MonoBehaviour
 
                 // Ajouter une fenêtre au mur
                 wallScript.AddDoor(wallCenter, windowWidth);
+                holesCreated.Push(wallScript.AddWindow(wallCenter, windowWidth));
             }
             else
             {

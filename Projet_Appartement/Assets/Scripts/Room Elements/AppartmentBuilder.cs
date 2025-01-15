@@ -11,6 +11,13 @@ public class ApartmentManager : MonoBehaviour
     private GameObject apartmentObject;
     private float y = 1f;
 
+    public bool canCreateWall = false;
+
+    public void onCreateWallButtonClicked()
+    {
+        canCreateWall = !canCreateWall;
+    }
+
     void Start()
     {
         InitializeRoom();
@@ -47,7 +54,7 @@ public class ApartmentManager : MonoBehaviour
 
     private void HandleMouseInput()
     {
-        if (Input.GetMouseButtonDown(0) && Camera.current.name == "BlueprintCamera" && apartmentObject == null)
+        if (canCreateWall && Input.GetMouseButtonDown(0) && Camera.current.name == "BlueprintCamera" && apartmentObject == null)
         {
             Vector3 mousePosition = GetMouseWorldPosition();
             mousePosition = SnapToGrid(mousePosition, 0.25f);

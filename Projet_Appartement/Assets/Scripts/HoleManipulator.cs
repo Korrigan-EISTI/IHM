@@ -57,6 +57,7 @@ public class HoleManipulator : MonoBehaviour
     {
         // Créer un cylindre pour représenter la flèche
         GameObject arrow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        arrow.transform.parent = GameObject.Find("TranslationGizmos").transform;
         arrow.name = name;
         arrow.transform.localScale = new Vector3(0.1f, 0.5f, 0.1f); // Échelle ajustée
         arrow.GetComponent<Renderer>().material.color = color; // Appliquer la couleur
