@@ -17,6 +17,9 @@ public class OrbitalCameraController : MonoBehaviour
     public float moveSpeed = 10.0f; // Vitesse de déplacement avec ZQSD
     public KeyCode deselectKey = KeyCode.R; // Touche pour désélectionner la cible
 
+    public Button addWindowButton;
+    public Button addDoorButton;
+
     private float _currentYaw = 0.0f; // Angle horizontal
     private float _currentPitch = 0.0f; // Angle vertical
 
@@ -30,6 +33,12 @@ public class OrbitalCameraController : MonoBehaviour
 
     private Stack<GameObject> holesCreated = new Stack<GameObject>();
     private Stack<GameObject> holesDeleted = new Stack<GameObject>();
+
+    private void Start()
+    {
+        addWindowButton.gameObject.SetActive(false);
+        addDoorButton.gameObject.SetActive(false);
+    }
 
     private void Update()
     {
@@ -99,6 +108,8 @@ public class OrbitalCameraController : MonoBehaviour
                 if (hit.collider.name.Contains("wall"))
                 {
                     SetTarget(hit.collider.gameObject.transform);
+                    addWindowButton.gameObject.SetActive(true);
+                    addDoorButton.gameObject.SetActive(true);
                 }
 
                 // Sélectionner une fenêtre ou une porte
@@ -223,6 +234,8 @@ public class OrbitalCameraController : MonoBehaviour
 
         _currentTargetRenderer = null;
         target = null;
+        addWindowButton.gameObject.SetActive(false);
+        addDoorButton.gameObject.SetActive(false);
     }
 
     public void onUndo()
@@ -322,7 +335,7 @@ public class OrbitalCameraController : MonoBehaviour
         _dimensionText.transform.position = wall.position + Vector3.up * 2;
         _dimensionText.transform.localScale = Vector3.one * 0.1f;
     }
-    private void OnAddWindowClicked()
+    public void OnAddWindowClicked()
     {
         if (target)
         {
@@ -345,7 +358,7 @@ public class OrbitalCameraController : MonoBehaviour
         }
     }
 
-    private void OnAddDoorClicked()
+    public void OnAddDoorClicked()
     {
         if (target)
         {
@@ -357,8 +370,7 @@ public class OrbitalCameraController : MonoBehaviour
                 float windowWidth = 1.0f; // Largeur fixe pour la fenêtre (modifiable)
 
                 // Ajouter une fenêtre au mur
-                wallScript.AddDoor(wallCenter, windowWidth);
-                holesCreated.Push(wallScript.AddWindow(wallCenter, windowWidth));
+                holesCreated.Push(wallScript.AddDoor(wallCenter, windowWidth));
                 holesDeleted.Clear();
             }
             else
