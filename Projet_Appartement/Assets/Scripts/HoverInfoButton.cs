@@ -65,7 +65,7 @@ public class HoverInfoButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
         {
             RectTransform rectTransform = hoverTextObject.GetComponent<RectTransform>();
             Vector2 mousePosition = Input.mousePosition;
-            rectTransform.position = mousePosition + new Vector2(10, -10); // Décalage pour éviter de cacher la souris
+            rectTransform.position = mousePosition + new Vector2(25, -10); // Décalage pour éviter de cacher la souris
         }
     }
 }
