@@ -41,11 +41,19 @@ public class Wall : MonoBehaviour
         // Ajuster la taille du mur en fonction de la distance entre start et end
         transform.localScale = new Vector3(0.1f, 2f, direction.magnitude);
 
-        foreach (Camera camera in Camera.allCameras)
+        foreach (Camera camera in FindObjectsOfType<Camera>(true)) // true pour inclure les objets inactifs
         {
             if (camera.name.Contains("Orbital"))
             {
-                camera.GetComponent<OrbitalCameraController>().addWallToUndo(gameObject);
+                OrbitalCameraController controller = camera.GetComponent<OrbitalCameraController>();
+                if (controller != null)
+                {
+                    controller.addWallToUndo(gameObject);
+                }
+                else
+                {
+                    Debug.LogWarning("OrbitalCameraController not found on " + camera.name);
+                }
             }
         }
     }
@@ -146,7 +154,7 @@ public class Wall : MonoBehaviour
 
         gameObject.transform.SetParent(window.transform);
         // Détruire le mur d'origine
-        gameObject.name = "OldWall";
+        gameObject.name = "wallOrigin";
         gameObject.SetActive(false);
 
         return gameObject;
@@ -207,7 +215,7 @@ public class Wall : MonoBehaviour
 
         gameObject.transform.SetParent(door.transform);
         // Détruire le mur d'origine
-        gameObject.name = "OldWall";
+        gameObject.name = "wallOrigin";
         gameObject.SetActive(false);
 
         return gameObject;

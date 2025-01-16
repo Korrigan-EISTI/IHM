@@ -120,18 +120,27 @@ public class OrbitalCameraController : MonoBehaviour
                     if (_translationGizmos)
                         Destroy(_translationGizmos);
 
-                    // Créer les gizmos
-                    _translationGizmos = new GameObject("TranslationGizmos");
-                    HoleManipulator manipulator = _translationGizmos.AddComponent<HoleManipulator>();
+                    if (target.Find("LeftWall").gameObject.activeSelf && target.Find("RightWall").gameObject.activeSelf && target.Find("TopWall").gameObject.activeSelf)
+                    {
+                        // Créer les gizmos
+                        _translationGizmos = new GameObject("TranslationGizmos");
+                        HoleManipulator manipulator = _translationGizmos.AddComponent<HoleManipulator>();
 
-                    // Passer les sous-objets du trou au HoleManipulator
-                    manipulator.leftWall = target.Find("LeftWall");
-                    manipulator.rightWall = target.Find("RightWall");
-                    manipulator.topWall = target.Find("TopWall");
-                    manipulator.bottomWall = target.Find("BottomWall");
+                        // Passer les sous-objets du trou au HoleManipulator
+                        manipulator.leftWall = target.Find("LeftWall");
+                        manipulator.rightWall = target.Find("RightWall");
+                        manipulator.topWall = target.Find("TopWall");
+                        manipulator.bottomWall = target.Find("BottomWall");
 
-                    // Positionner les flèches au centre du trou
-                    _translationGizmos.transform.position = target.position;
+                        // Positionner les flèches au centre du trou
+                        _translationGizmos.transform.position = target.position;
+                    }
+                    else
+                    {
+                        SetTarget(hit.collider.transform.parent.Find("wallOrigin"));
+                        addWindowButton.gameObject.SetActive(true);
+                        addDoorButton.gameObject.SetActive(true);
+                    }
                 }
 
                 if(hit.collider == null)
@@ -202,7 +211,7 @@ public class OrbitalCameraController : MonoBehaviour
             if (target.gameObject.name.Contains("wall"))
                 ShowWallDimensions(target);
             else
-                ShowWallDimensions(target.Find("OldWall"));
+                ShowWallDimensions(target.Find("wallOrigin"));
         }
     }
 
@@ -232,6 +241,9 @@ public class OrbitalCameraController : MonoBehaviour
             Destroy(_canvasObject);
         }
 
+        if (_translationGizmos)
+            Destroy(_translationGizmos);
+
         _currentTargetRenderer = null;
         target = null;
         addWindowButton.gameObject.SetActive(false);
@@ -240,11 +252,11 @@ public class OrbitalCameraController : MonoBehaviour
 
     public void onUndo()
     {
-        if (holesDeleted.Count > 0)
+        if (holesCreated.Count > 0)
         {
             GameObject go = holesCreated.Pop();
 
-            if (go.transform.parent != null && go.transform.parent.name != "Appartment")
+            if (go.transform.parent != null && !go.transform.parent.name.Contains("Apart"))
             {
                 GameObject prefab = go.transform.parent.gameObject;
 
@@ -272,7 +284,7 @@ public class OrbitalCameraController : MonoBehaviour
         {
             GameObject go = holesDeleted.Pop();
 
-            if (go.transform.parent != null && go.transform.parent.name != "Appartment")
+            if (go.transform.parent != null && !go.transform.parent.name.Contains("Apart"))
             {
                 GameObject prefab = go.transform.parent.gameObject;
 
@@ -299,6 +311,8 @@ public class OrbitalCameraController : MonoBehaviour
         if (target != null)
         {
             target.gameObject.SetActive(false);
+            holesDeleted.Clear();
+            holesCreated.Push(target.gameObject);
             ClearTarget();
             target = null;
         }
