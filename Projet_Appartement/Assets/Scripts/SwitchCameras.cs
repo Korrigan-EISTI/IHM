@@ -6,8 +6,7 @@ public class CameraSwitcher : MonoBehaviour
     [SerializeField] private OrbitalCameraController orbitalCameraController;
     [SerializeField] private GameObject blueprint;
     [SerializeField] private GameObject renderLine;
-
-    public KeyCode switchKey = KeyCode.C; // Touche pour changer de caméra
+    
     private int currentCameraIndex = 0;
     
 
@@ -20,16 +19,7 @@ public class CameraSwitcher : MonoBehaviour
             Camera.SetupCurrent(cameras.GetChild(currentCameraIndex).GetComponent<Camera>());
         }
     }
-
-    void Update()
-    {
-        // Vérifier si la touche de changement de caméra est pressée
-        if (Input.GetKeyDown(switchKey))
-        {
-            SwitchCamera();
-        }
-    }
-
+    
     public void SwitchCamera()
     {
         // Désélectionner l'objet cible si OrbitalCameraController est défini

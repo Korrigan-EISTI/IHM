@@ -46,7 +46,6 @@ public class OrbitalCameraController : MonoBehaviour
         HandleRotation();
         HandleMovement();
         HandleClickToSetTarget();
-        HandleDeselectTarget();
         UpdateTextOrientation();
     }
 
@@ -75,11 +74,14 @@ public class OrbitalCameraController : MonoBehaviour
 
     private void HandleMovement()
     {
-        float horizontal = Input.GetAxis("Horizontal"); // Q/D ou A/D
-        float vertical = Input.GetAxis("Vertical"); // Z/S ou W/S
+        if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+        {
+            float horizontal = Input.GetAxis("Horizontal"); // Q/D ou A/D
+            float vertical = Input.GetAxis("Vertical"); // Z/S ou W/S
 
-        Vector3 direction = new Vector3(horizontal, 0, vertical);
-        transform.Translate(direction * (moveSpeed * Time.deltaTime), Space.Self);
+            Vector3 direction = new Vector3(horizontal, 0, vertical);
+            transform.Translate(direction * (moveSpeed * Time.deltaTime), Space.Self);
+        }
     }
 
     private void HandleClickToSetTarget()
@@ -155,14 +157,6 @@ public class OrbitalCameraController : MonoBehaviour
     {
         holesCreated.Push(gameObject);
         holesDeleted.Clear();
-    }
-
-    private void HandleDeselectTarget()
-    {
-        if (Input.GetKeyDown(deselectKey))
-        {
-            ClearTarget();
-        }
     }
 
     private void UpdateCameraPosition()

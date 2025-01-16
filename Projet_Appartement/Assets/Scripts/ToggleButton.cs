@@ -13,7 +13,7 @@ public class ToggleButton : MonoBehaviour
         UpdateButtonVisual();
     }
 
-    void ToggleState()
+    public void ToggleState()
     {
         isToggled = !isToggled;
         UpdateButtonVisual();
