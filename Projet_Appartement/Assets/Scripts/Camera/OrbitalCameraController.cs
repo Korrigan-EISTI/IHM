@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class OrbitalCameraController : MonoBehaviour
@@ -88,9 +89,18 @@ public class OrbitalCameraController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)) // Bouton gauche de la souris
         {
+            // Configure un masque pour ignorer les calques UI lors du raycast
+            int layerMask = 1 << LayerMask.NameToLayer("UI");
+            layerMask = ~layerMask; // Inverse le masque pour ignorer seulement l'UI
+
             Ray ray = orbitalCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask))
             {
+                if (hit.collider.transform == target || hit.collider.transform.parent == target)
+                {
+                    ClearTarget();
+                    return;
+                }
                 // Vérifier si l'utilisateur a cliqué sur une flèche
                 if (hit.collider != null && hit.collider.gameObject.name.Contains("Arrow"))
                 {
@@ -143,11 +153,6 @@ public class OrbitalCameraController : MonoBehaviour
                         addWindowButton.gameObject.SetActive(true);
                         addDoorButton.gameObject.SetActive(true);
                     }
-                }
-
-                if(hit.collider == null)
-                {
-                    ClearTarget();
                 }
             }
         }
