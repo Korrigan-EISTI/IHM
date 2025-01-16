@@ -78,12 +78,12 @@ namespace SimpleFileBrowser
 		#region Messages
 		private void Update()
 		{
-			if( fileBrowser.AllowMultiSelection && Time.realtimeSinceStartup - pressTime >= TOGGLE_MULTI_SELECTION_HOLD_TIME )
+			/*if( fileBrowser.AllowMultiSelection && Time.realtimeSinceStartup - pressTime >= TOGGLE_MULTI_SELECTION_HOLD_TIME )
 			{
 				// Item is held for a while
 				pressTime = Mathf.Infinity;
 				fileBrowser.OnItemHeld( this );
-			}
+			}*/
 		}
 		#endregion
 

@@ -30,7 +30,7 @@ public class CameraSwitcher : MonoBehaviour
         }
     }
 
-    void SwitchCamera()
+    public void SwitchCamera()
     {
         // Désélectionner l'objet cible si OrbitalCameraController est défini
         orbitalCameraController?.ClearTarget();
@@ -47,12 +47,12 @@ public class CameraSwitcher : MonoBehaviour
         if (Camera.current.name == "BlueprintCamera")
         {
             blueprint.SetActive(true);
-            renderLine.SetActive(true);
+            // renderLine.SetActive(true);
         }
         else
         {
             blueprint.SetActive(false);
-            renderLine.SetActive(false);
+            // renderLine.SetActive(false);
         }
     }
 }
